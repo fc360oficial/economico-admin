@@ -194,11 +194,44 @@
     @media(max-width:520px){ .config-grid { grid-template-columns:1fr; } }
 
     /* ── REPORTS ── */
-    .report-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
     .report-table { width:100%; border-collapse:collapse; font-size:13px; }
     .report-table th { text-align:left; padding:10px 12px; font-size:11px; color:var(--text2); font-weight:700; border-bottom:1px solid var(--border); }
     .report-table td { padding:10px 12px; border-bottom:1px solid #1e1e1e; }
     .report-table tr:last-child td { border-bottom:none; }
+    .report-table td:nth-child(n+2) { text-align:right; }
+    .report-table th:nth-child(n+2) { text-align:right; }
+    .rep-filter-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .rep-period-btn {
+      padding:7px 15px; border-radius:20px; border:1px solid var(--border);
+      background:transparent; color:var(--text2); font-size:12px; font-weight:700;
+      font-family:inherit; cursor:pointer; transition:all .18s;
+    }
+    .rep-period-btn.active { background:var(--y); color:var(--dark); border-color:var(--y); }
+    .rep-period-btn:hover:not(.active) { border-color:var(--y); color:var(--y); }
+    .rep-date-input {
+      background:var(--card); border:1px solid var(--border); border-radius:8px;
+      padding:8px 12px; color:var(--text); font-size:13px; font-family:inherit; outline:none;
+    }
+    .rep-date-input:focus { border-color:var(--y); }
+    .rep-kpi-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px; }
+    @media(min-width:640px){ .rep-kpi-grid { grid-template-columns:repeat(4,1fr); } }
+    .rep-kpi-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 16px; }
+    .rep-kpi-icon { font-size:20px; margin-bottom:8px; }
+    .rep-kpi-val { font-size:22px; font-weight:900; color:var(--y); line-height:1; }
+    .rep-kpi-label { font-size:12px; font-weight:700; color:var(--text); margin-top:4px; }
+    .rep-kpi-sub { font-size:11px; color:var(--text2); margin-top:2px; }
+    .rep-2col { display:grid; grid-template-columns:1fr; gap:16px; margin-bottom:16px; }
+    @media(min-width:700px){ .rep-2col { grid-template-columns:1fr 1fr; } }
+    .rep-bar-row { display:flex; align-items:center; gap:10px; margin-bottom:13px; }
+    .rep-bar-label { width:130px; font-size:12px; color:var(--text); flex-shrink:0; line-height:1.3; }
+    .rep-bar-count { display:block; font-size:10px; color:var(--text2); font-weight:400; }
+    .rep-bar-wrap { flex:1; background:#222; border-radius:4px; height:8px; overflow:hidden; }
+    .rep-bar-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+    .rep-bar-val { font-size:12px; font-weight:700; color:var(--text); text-align:right; min-width:90px; flex-shrink:0; line-height:1.3; }
+    .rep-bar-pct { display:block; font-size:10px; color:var(--text2); font-weight:400; }
+    .rep-empty-small { padding:20px; color:var(--text2); font-size:13px; text-align:center; }
+    .rep-label-destaque { color:var(--y); font-weight:700; }
+    .rep-cancel-badge { color:var(--red); font-weight:700; }
 
     /* ── CUPONS ── */
     .cupon-row { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
@@ -318,13 +351,53 @@
 
     <!-- TAB RELATÓRIOS -->
     <div class="tab-panel" id="tab-relatorios">
-      <div class="toolbar"><div class="toolbar-title">Relatórios</div>
+      <div class="toolbar">
+        <div class="toolbar-title">📊 Relatórios</div>
         <button class="btn btn-outline btn-sm" onclick="loadRelatorios()">↻ Atualizar</button>
       </div>
-      <div class="report-stats" id="rep-stats"></div>
+
+      <!-- Filtros de período -->
+      <div class="rep-filter-bar">
+        <button class="rep-period-btn" onclick="setPeriod('hoje',this)">Hoje</button>
+        <button class="rep-period-btn" onclick="setPeriod('semana',this)">Últimos 7 dias</button>
+        <button class="rep-period-btn active" onclick="setPeriod('mes',this)">Este mês</button>
+        <button class="rep-period-btn" onclick="setPeriod('mes_ant',this)">Mês anterior</button>
+        <button class="rep-period-btn" onclick="setPeriod('custom',this)">Personalizado ▾</button>
+      </div>
+
+      <!-- Datas personalizadas -->
+      <div id="rep-custom-dates" style="display:none;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px">
+        <input type="date" id="rep-date-ini" class="rep-date-input">
+        <span style="color:var(--text2);font-size:13px">até</span>
+        <input type="date" id="rep-date-fim" class="rep-date-input">
+        <button class="btn btn-y btn-sm" onclick="loadRelatorios()">Buscar</button>
+      </div>
+
+      <!-- KPIs -->
+      <div class="rep-kpi-grid" id="rep-kpi"><div class="loading" style="grid-column:1/-1">Carregando...</div></div>
+
+      <!-- Pagamento + Modalidade -->
+      <div class="rep-2col">
+        <div class="config-section">
+          <div class="config-section-title">Por forma de pagamento</div>
+          <div id="rep-pagamentos"><div class="loading">...</div></div>
+        </div>
+        <div class="config-section">
+          <div class="config-section-title">Por modalidade</div>
+          <div id="rep-modalidade"><div class="loading">...</div></div>
+        </div>
+      </div>
+
+      <!-- Tabela por dia -->
       <div class="config-section">
-        <div class="config-section-title">Pedidos por dia</div>
+        <div class="config-section-title">Vendas por dia</div>
         <div id="rep-table"><div class="loading">Carregando...</div></div>
+      </div>
+
+      <!-- Top produtos -->
+      <div class="config-section">
+        <div class="config-section-title">Produtos mais vendidos no período</div>
+        <div id="rep-produtos"><div class="loading">Carregando...</div></div>
       </div>
     </div>
 
@@ -400,6 +473,33 @@
       <div id="cfg-msg" style="text-align:center;font-size:13px;font-weight:700;margin-top:12px;min-height:20px"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── MODAL CANCELAR PEDIDO ── -->
+<div class="modal-overlay" id="dlg-cancelar" style="display:none" onclick="if(event.target===this)document.getElementById('dlg-cancelar').style.display='none'">
+  <div class="modal" style="max-width:420px">
+    <div style="font-size:28px;text-align:center;margin-bottom:8px">⚠️</div>
+    <div class="modal-title" style="text-align:center;color:var(--red)">Cancelar Pedido</div>
+    <p style="font-size:13px;color:var(--text2);text-align:center;margin:4px 0 20px">Pedido <strong id="dlg-cancel-num" style="color:var(--text)"></strong> de <strong id="dlg-cancel-nome" style="color:var(--text)"></strong></p>
+
+    <label style="font-size:12px;font-weight:700;color:var(--text2);display:block;margin-bottom:6px">Motivo do cancelamento <span style="color:var(--red)">*</span></label>
+    <select id="dlg-cancel-motivo" class="login-input" style="margin-bottom:10px">
+      <option value="">— Selecione um motivo —</option>
+      <option value="Produto em falta no estoque">Produto em falta no estoque</option>
+      <option value="Endereço não localizado">Endereço não localizado</option>
+      <option value="Cliente solicitou cancelamento">Cliente solicitou cancelamento</option>
+      <option value="Pagamento não confirmado">Pagamento não confirmado</option>
+      <option value="Fora da área de entrega">Fora da área de entrega</option>
+      <option value="Pedido duplicado">Pedido duplicado</option>
+      <option value="Outro">Outro (descreva abaixo)</option>
+    </select>
+    <textarea id="dlg-cancel-obs" class="login-input" rows="2" placeholder="Detalhes adicionais (opcional)..." style="resize:none;margin-bottom:20px"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="document.getElementById('dlg-cancelar').style.display='none'">Voltar</button>
+      <button class="btn btn-red" onclick="executarCancelamento()">Confirmar cancelamento</button>
+    </div>
   </div>
 </div>
 
@@ -985,32 +1085,204 @@ function saveConfig() {
     .catch(function(e){ alert('Erro: '+e.message); });
 }
 
+// ── CANCELAMENTO ─────────────────────────────────────────────────────────────
+var _cancelDoc='', _cancelPhone='', _cancelNome='', _cancelNum='';
+function abrirCancelamento(docId, numEnc, phone, nomeEnc) {
+  _cancelDoc   = docId;
+  _cancelPhone = phone;
+  _cancelNome  = decodeURIComponent(nomeEnc);
+  _cancelNum   = decodeURIComponent(numEnc);
+  document.getElementById('dlg-cancel-num').textContent  = '#'+_cancelNum;
+  document.getElementById('dlg-cancel-nome').textContent = _cancelNome;
+  document.getElementById('dlg-cancel-motivo').value = '';
+  document.getElementById('dlg-cancel-obs').value    = '';
+  document.getElementById('dlg-cancelar').style.display = 'flex';
+}
+function executarCancelamento() {
+  var sel = document.getElementById('dlg-cancel-motivo').value;
+  var obs = document.getElementById('dlg-cancel-obs').value.trim();
+  if (!sel) { alert('Selecione um motivo para o cancelamento.'); return; }
+  var motivo = obs ? sel+' — '+obs : sel;
+  var agora = new Date();
+  db.collection('pedidos').doc(_cancelDoc).update({
+    status: 'cancelado',
+    motivoCancelamento: motivo,
+    canceladoEm: agora.toLocaleString('pt-BR')
+  }).then(function(){
+    document.getElementById('dlg-cancelar').style.display = 'none';
+    loadPedidos();
+    if (_cancelPhone) {
+      var msg = 'Olá '+_cancelNome+', seu pedido %23'+_cancelNum+' foi cancelado.%0AMotivo: '+encodeURIComponent(motivo);
+      window.open('https://wa.me/55'+_cancelPhone+'?text='+msg,'_blank');
+    }
+  }).catch(function(e){ alert('Erro: '+e.message); });
+}
+
 // ── RELATÓRIOS ────────────────────────────────────────────────────────────────
+var _repPeriod = 'mes';
+
+function setPeriod(p, btn) {
+  _repPeriod = p;
+  document.querySelectorAll('.rep-period-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var cust = document.getElementById('rep-custom-dates');
+  cust.style.display = p === 'custom' ? 'flex' : 'none';
+  if (p !== 'custom') loadRelatorios();
+}
+
+function _repGetRange() {
+  var now = new Date();
+  var ini, fim;
+  if (_repPeriod === 'hoje') {
+    ini = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    fim = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  } else if (_repPeriod === 'semana') {
+    ini = new Date(now - 7*24*3600*1000); ini.setHours(0,0,0,0);
+    fim = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  } else if (_repPeriod === 'mes') {
+    ini = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    fim = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  } else if (_repPeriod === 'mes_ant') {
+    ini = new Date(now.getFullYear(), now.getMonth()-1, 1, 0, 0, 0);
+    fim = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  } else {
+    var dI = document.getElementById('rep-date-ini').value;
+    var dF = document.getElementById('rep-date-fim').value;
+    if (!dI || !dF) { alert('Selecione as duas datas.'); return null; }
+    ini = new Date(dI + 'T00:00:00'); fim = new Date(dF + 'T23:59:59');
+  }
+  return { ini: ini, fim: fim };
+}
+
 function loadRelatorios() {
-  var el = document.getElementById('rep-table');
-  el.innerHTML = '<div class="loading">Carregando...</div>';
-  db.collection('pedidos').orderBy('createdAt','desc').limit(200).get().then(function(snap) {
-    var totalVal=0, totalQtd=0, byDay={};
-    snap.docs.forEach(function(doc){
-      var d = doc.data();
-      if (d.status === 'cancelado') return;
-      totalVal += d.total || 0;
-      totalQtd++;
-      var dt = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
-      var dia = dt.toLocaleDateString('pt-BR');
-      if (!byDay[dia]) byDay[dia] = {qtd:0,val:0};
-      byDay[dia].qtd++; byDay[dia].val += d.total||0;
-    });
-    document.getElementById('rep-stats').innerHTML =
-      '<div class="stat-card"><div class="stat-val">'+totalQtd+'</div><div class="stat-label">Pedidos (últ. 200)</div></div>'
-      +'<div class="stat-card"><div class="stat-val">R$'+totalVal.toFixed(2).replace('.',',')+'</div><div class="stat-label">Faturamento</div></div>'
-      +'<div class="stat-card"><div class="stat-val">R$'+(totalQtd?totalVal/totalQtd:0).toFixed(2).replace('.',',')+'</div><div class="stat-label">Ticket médio</div></div>';
-    var dias = Object.keys(byDay);
-    if (!dias.length) { el.innerHTML='<div class="empty"><div class="empty-txt">Sem pedidos</div></div>'; return; }
-    el.innerHTML = '<table class="report-table"><thead><tr><th>Data</th><th>Pedidos</th><th>Total</th></tr></thead><tbody>'
-      + dias.map(function(d){ return '<tr><td>'+d+'</td><td>'+byDay[d].qtd+'</td><td>R$'+byDay[d].val.toFixed(2).replace('.',',')+'</td></tr>'; }).join('')
-      +'</tbody></table>';
+  var range = _repGetRange();
+  if (!range) return;
+  ['rep-kpi','rep-pagamentos','rep-modalidade','rep-table','rep-produtos'].forEach(function(id){
+    document.getElementById(id).innerHTML = '<div class="loading">Carregando...</div>';
   });
+  db.collection('pedidos')
+    .where('createdAt','>=', firebase.firestore.Timestamp.fromDate(range.ini))
+    .where('createdAt','<=', firebase.firestore.Timestamp.fromDate(range.fim))
+    .orderBy('createdAt','desc')
+    .get()
+    .then(_renderRelatorios)
+    .catch(function(e){
+      document.getElementById('rep-kpi').innerHTML = '<div style="color:var(--red);padding:16px">Erro: '+e.message+'</div>';
+    });
+}
+
+function _renderRelatorios(snap) {
+  function R(n){ return 'R$'+(n||0).toFixed(2).replace('.',','); }
+
+  var totalPed=0, totalCanc=0, fat=0, freteTotal=0, descTotal=0;
+  var byDay={}, byPag={}, byModo={}, produtos={};
+
+  snap.docs.forEach(function(doc){
+    var d = doc.data();
+    var dt = d.createdAt && d.createdAt.toDate ? d.createdAt.toDate() : new Date();
+    var dia = dt.toLocaleDateString('pt-BR');
+    if (!byDay[dia]) byDay[dia] = {qtd:0, val:0, canc:0};
+
+    if (d.status === 'cancelado') {
+      totalCanc++;
+      byDay[dia].canc++;
+      return;
+    }
+    totalPed++;
+    var tot = d.total || 0;
+    fat += tot;
+    freteTotal += d.frete || 0;
+    descTotal  += d.desconto || 0;
+    byDay[dia].qtd++;
+    byDay[dia].val += tot;
+
+    var pag = (d.pagamento || 'outro').toLowerCase();
+    if (!byPag[pag]) byPag[pag] = {qtd:0, val:0};
+    byPag[pag].qtd++; byPag[pag].val += tot;
+
+    var modo = d.modo || 'entrega';
+    if (!byModo[modo]) byModo[modo] = {qtd:0, val:0};
+    byModo[modo].qtd++; byModo[modo].val += tot;
+
+    if (Array.isArray(d.items)) {
+      d.items.forEach(function(item){
+        var nome = item.nome || item.name || '?';
+        if (!produtos[nome]) produtos[nome] = {qtd:0, val:0};
+        var q = item.qtd || item.qty || 1;
+        produtos[nome].qtd += q;
+        produtos[nome].val += (item.preco || item.price || 0) * q;
+      });
+    }
+  });
+
+  var ticket = totalPed ? fat/totalPed : 0;
+
+  // KPIs
+  document.getElementById('rep-kpi').innerHTML = [
+    {icon:'📦', val:totalPed,     label:'Pedidos',      sub:totalCanc+' cancelado(s)'},
+    {icon:'💰', val:R(fat),       label:'Faturamento',  sub:'frete: '+R(freteTotal)},
+    {icon:'🎯', val:R(ticket),    label:'Ticket médio', sub:'por pedido'},
+    {icon:'🏷', val:R(descTotal), label:'Descontos',    sub:'total concedido'},
+  ].map(function(k){
+    return '<div class="rep-kpi-card">'
+      +'<div class="rep-kpi-icon">'+k.icon+'</div>'
+      +'<div class="rep-kpi-val">'+k.val+'</div>'
+      +'<div class="rep-kpi-label">'+k.label+'</div>'
+      +'<div class="rep-kpi-sub">'+k.sub+'</div>'
+      +'</div>';
+  }).join('');
+
+  // Barras helper
+  function barras(map, maxKey, colorFill, labelMap) {
+    var keys = Object.keys(map).sort(function(a,b){ return map[b][maxKey]-map[a][maxKey]; });
+    if (!keys.length) return '<div class="rep-empty-small">Sem dados no período</div>';
+    var maxVal = map[keys[0]][maxKey] || 1;
+    return keys.map(function(k){
+      var pct = Math.round(map[k][maxKey]/maxVal*100);
+      var lbl = labelMap && labelMap[k] ? labelMap[k] : k;
+      return '<div class="rep-bar-row">'
+        +'<div class="rep-bar-label">'+lbl+'<span class="rep-bar-count">'+map[k].qtd+' ped.</span></div>'
+        +'<div class="rep-bar-wrap"><div class="rep-bar-fill" style="width:'+pct+'%;background:'+colorFill+'"></div></div>'
+        +'<div class="rep-bar-val">'+R(map[k].val)+'<span class="rep-bar-pct">'+pct+'%</span></div>'
+        +'</div>';
+    }).join('');
+  }
+
+  var PAG_LABELS = {pix:'💳 PIX', dinheiro:'💵 Dinheiro', credito:'💳 Crédito', debito:'💳 Débito', outro:'❓ Outro'};
+  var MODO_LABELS = {entrega:'🚚 Entrega', retirada:'🏪 Retirada'};
+  document.getElementById('rep-pagamentos').innerHTML = barras(byPag, 'val', 'var(--green)', PAG_LABELS);
+  document.getElementById('rep-modalidade').innerHTML = barras(byModo, 'qtd', 'var(--blue)', MODO_LABELS);
+
+  // Tabela por dia
+  var dias = Object.keys(byDay).sort(function(a,b){
+    var pa=a.split('/'), pb=b.split('/');
+    return new Date(pb[2],pb[1]-1,pb[0]) - new Date(pa[2],pa[1]-1,pa[0]);
+  });
+  document.getElementById('rep-table').innerHTML = dias.length
+    ? '<table class="report-table"><thead><tr><th>Data</th><th>Pedidos</th><th>Cancelados</th><th>Faturamento</th><th>Ticket médio</th></tr></thead><tbody>'
+      + dias.map(function(d){
+          var q=byDay[d].qtd, v=byDay[d].val, c=byDay[d].canc;
+          return '<tr><td>'+d+'</td><td>'+q+'</td>'
+            +'<td>'+(c?'<span class="rep-cancel-badge">'+c+'</span>':'—')+'</td>'
+            +'<td><span class="rep-label-destaque">'+R(v)+'</span></td>'
+            +'<td>'+R(q?v/q:0)+'</td></tr>';
+        }).join('')
+      +'</tbody></table>'
+    : '<div class="rep-empty-small">Nenhum pedido no período selecionado</div>';
+
+  // Top produtos
+  var topP = Object.keys(produtos).sort(function(a,b){ return produtos[b].qtd-produtos[a].qtd; }).slice(0,10);
+  var maxQ = topP.length ? produtos[topP[0]].qtd : 1;
+  document.getElementById('rep-produtos').innerHTML = topP.length
+    ? topP.map(function(nome,i){
+        var pct = Math.round(produtos[nome].qtd/maxQ*100);
+        return '<div class="rep-bar-row">'
+          +'<div class="rep-bar-label"><strong>#'+(i+1)+'</strong> '+nome+'<span class="rep-bar-count">'+produtos[nome].qtd+'x vendido</span></div>'
+          +'<div class="rep-bar-wrap"><div class="rep-bar-fill" style="width:'+pct+'%;background:var(--y)"></div></div>'
+          +'<div class="rep-bar-val">'+R(produtos[nome].val)+'<span class="rep-bar-pct">'+pct+'%</span></div>'
+          +'</div>';
+      }).join('')
+    : '<div class="rep-empty-small">Dados de produtos não disponíveis</div>';
 }
 
 // ── CUPONS ────────────────────────────────────────────────────────────────────
@@ -1085,8 +1357,8 @@ var STATUS_LABELS = {
   cancelado:  {label:'Cancelado',  badge:'badge-red'},
 };
 var STATUS_NEXT = {
-  recebido:   [{s:'preparando', label:'▶ Iniciar Separação',   cls:'btn-green'},  {s:'cancelado',label:'Cancelar',cls:'btn-red btn-sm'}],
-  preparando: [{s:'saiu',       label:'✅ Finalizar Separação', cls:'btn-orange', notificar:true}, {s:'cancelado',label:'Cancelar',cls:'btn-red btn-sm'}],
+  recebido:   [{s:'preparando', label:'▶ Iniciar Separação',   cls:'btn-green'},  {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
+  preparando: [{s:'saiu',       label:'✅ Finalizar Separação', cls:'btn-orange', notificar:true}, {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
   saiu:       [{s:'entregue',   label:'🏁 Marcar Entregue',    cls:'btn-blue'}],
   entregue:   [],
   cancelado:  [],
@@ -1129,9 +1401,14 @@ function _fetchPedidos() {
         var itens = (d.itens||[]).map(function(i){ return i.qty+'x '+i.name; }).join(', ');
         var phone = d.phone ? d.phone.replace(/\D/g,'') : '';
         var btns = (STATUS_NEXT[d.status]||[]).map(function(b){
-          var fn = b.notificar
-            ? 'confirmarSaiu(\''+doc.id+'\',\''+d.num+'\','+(phone?'\''+phone+'\'':'null')+')'
-            : 'updateStatus(\''+doc.id+'\',\''+b.s+'\',this,\''+phone+'\',\''+encodeURIComponent(d.nome||'')+'\',\''+encodeURIComponent(d.num||'')+'\')';
+          var fn;
+          if (b.cancelar) {
+            fn = 'abrirCancelamento(\''+doc.id+'\',\''+encodeURIComponent(d.num||'')+'\',\''+phone+'\',\''+encodeURIComponent(d.nome||'')+'\')';
+          } else if (b.notificar) {
+            fn = 'confirmarSaiu(\''+doc.id+'\',\''+d.num+'\','+(phone?'\''+phone+'\'':'null')+')';
+          } else {
+            fn = 'updateStatus(\''+doc.id+'\',\''+b.s+'\',this,\''+phone+'\',\''+encodeURIComponent(d.nome||'')+'\',\''+encodeURIComponent(d.num||'')+'\')';
+          }
           return '<button class="btn '+b.cls+' btn-sm" onclick="'+fn+'">'+b.label+'</button>';
         }).join('');
         var waLink = d.phone ? '<a href="https://wa.me/55'+d.phone.replace(/\D/g,'')+'" target="_blank" class="btn btn-outline btn-sm">💬 WhatsApp</a>' : '';
@@ -1148,6 +1425,10 @@ function _fetchPedidos() {
             +(d.createdAt?' · '+(d.createdAt.toDate?d.createdAt.toDate().toLocaleString('pt-BR'):''):'')
             +(d.agendado&&d.agendadoPara?'<br>📅 Agendado para: <strong>'+d.agendadoPara+'</strong>':'')
           +'</div>'
+          +(d.status==='cancelado' && d.motivoCancelamento ? '<div style="margin-top:8px;padding:8px 12px;background:#2a1010;border-radius:8px;border-left:3px solid var(--red);font-size:12px">'
+            +'<strong style="color:var(--red)">Motivo do cancelamento:</strong> <span style="color:#fca5a5">'+d.motivoCancelamento+'</span>'
+            +(d.canceladoEm?'<span style="color:#666;margin-left:8px">'+d.canceladoEm+'</span>':'')
+            +'</div>':'')
           +(d.ajustado && d.ajustes && d.ajustes.length ? '<div id="log-'+doc.id+'" style="display:none;margin-top:10px;background:#1a1a1a;border-radius:8px;padding:12px;font-size:12px">'
             +'<div style="font-weight:800;color:var(--y);margin-bottom:8px">📋 Histórico de ajustes</div>'
             +d.ajustes.map(function(a){

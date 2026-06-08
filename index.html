@@ -399,6 +399,12 @@
         <div class="config-section-title">Produtos mais vendidos no período</div>
         <div id="rep-produtos"><div class="loading">Carregando...</div></div>
       </div>
+
+      <!-- Cupons -->
+      <div class="config-section">
+        <div class="config-section-title">Cupons utilizados no período</div>
+        <div id="rep-cupons"><div class="loading">Carregando...</div></div>
+      </div>
     </div>
 
     <!-- TAB CUPONS -->
@@ -1181,7 +1187,7 @@ function _renderRelatorios(snap) {
   function R(n){ return 'R$'+(n||0).toFixed(2).replace('.',','); }
 
   var totalPed=0, totalCanc=0, fat=0, freteTotal=0, descTotal=0;
-  var byDay={}, byPag={}, byModo={}, produtos={};
+  var byDay={}, byPag={}, byModo={}, produtos={}, byCupom={};
 
   snap.docs.forEach(function(doc){
     var d = doc.data();
@@ -1219,16 +1225,26 @@ function _renderRelatorios(snap) {
         produtos[nome].val += (item.preco || item.price || 0) * q;
       });
     }
+
+    if (d.cupon || d.codigoCupom) {
+      var cupKey = d.codigoCupom || d.cupon;
+      if (!byCupom[cupKey]) byCupom[cupKey] = { codigo: d.codigoCupom || null, id: d.cupon || null, qtd: 0, desc: 0 };
+      byCupom[cupKey].qtd++;
+      byCupom[cupKey].desc += d.desconto || 0;
+    }
   });
 
   var ticket = totalPed ? fat/totalPed : 0;
 
   // KPIs
+  var totalComCupom = Object.values(byCupom).reduce(function(s,v){ return s+v.qtd; }, 0);
+  var pctCupom = totalPed ? Math.round(totalComCupom/totalPed*100) : 0;
+
   document.getElementById('rep-kpi').innerHTML = [
-    {icon:'📦', val:totalPed,     label:'Pedidos',      sub:totalCanc+' cancelado(s)'},
-    {icon:'💰', val:R(fat),       label:'Faturamento',  sub:'frete: '+R(freteTotal)},
-    {icon:'🎯', val:R(ticket),    label:'Ticket médio', sub:'por pedido'},
-    {icon:'🏷', val:R(descTotal), label:'Descontos',    sub:'total concedido'},
+    {icon:'📦', val:totalPed,          label:'Pedidos',        sub:totalCanc+' cancelado(s)'},
+    {icon:'💰', val:R(fat),            label:'Faturamento',    sub:'frete: '+R(freteTotal)},
+    {icon:'🎯', val:R(ticket),         label:'Ticket médio',   sub:'por pedido'},
+    {icon:'🏷', val:pctCupom+'%',      label:'Usaram cupom',   sub:totalComCupom+' pedidos · '+R(descTotal)},
   ].map(function(k){
     return '<div class="rep-kpi-card">'
       +'<div class="rep-kpi-icon">'+k.icon+'</div>'
@@ -1289,6 +1305,44 @@ function _renderRelatorios(snap) {
           +'</div>';
       }).join('')
     : '<div class="rep-empty-small">Dados de produtos não disponíveis</div>';
+
+  // Cupons
+  var cupKeys = Object.keys(byCupom);
+  if (!cupKeys.length) {
+    document.getElementById('rep-cupons').innerHTML = '<div class="rep-empty-small">Nenhum cupom utilizado no período</div>';
+    return;
+  }
+
+  var cupomEl = document.getElementById('rep-cupons');
+  cupomEl.innerHTML = '<div class="loading">Carregando cupons...</div>';
+
+  // Busca códigos dos que ainda não têm código (pedidos antigos só tinham o ID)
+  var semCodigo = cupKeys.filter(function(k){ return !byCupom[k].codigo && byCupom[k].id; });
+  var fetchPromises = semCodigo.map(function(k){
+    return db.collection('cupons').doc(byCupom[k].id).get().then(function(doc){
+      if (doc.exists) byCupom[k].codigo = doc.data().codigo || byCupom[k].id;
+      else             byCupom[k].codigo = byCupom[k].id;
+    }).catch(function(){ byCupom[k].codigo = byCupom[k].id; });
+  });
+
+  Promise.all(fetchPromises).then(function(){
+    var sorted = cupKeys.sort(function(a,b){ return byCupom[b].qtd - byCupom[a].qtd; });
+    var maxD = byCupom[sorted[0]].desc || 1;
+    cupomEl.innerHTML = '<table class="report-table"><thead><tr>'
+      +'<th>Código</th><th>Usos</th><th>Desconto total</th><th>Desconto médio</th>'
+      +'</tr></thead><tbody>'
+      + sorted.map(function(k){
+          var c = byCupom[k];
+          var cod = c.codigo || k;
+          return '<tr>'
+            +'<td><strong style="color:var(--y)">'+cod+'</strong></td>'
+            +'<td>'+c.qtd+'×</td>'
+            +'<td><span class="rep-label-destaque">'+R(c.desc)+'</span></td>'
+            +'<td>'+R(c.qtd ? c.desc/c.qtd : 0)+'</td>'
+            +'</tr>';
+        }).join('')
+      +'</tbody></table>';
+  });
 }
 
 // ── CUPONS ────────────────────────────────────────────────────────────────────

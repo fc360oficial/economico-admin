@@ -1560,6 +1560,7 @@ function _fetchPedidos() {
           +'<div class="pedido-status-btns">'+btns+waLink+_btnPagamento(doc.id,d)
           +(['recebido','preparando'].indexOf(d.status)>=0?'<button class="btn btn-outline btn-sm" onclick="abrirAjuste(\''+doc.id+'\')">✏️ Ajustar</button>':'')
           +(d.cupomFiscalUrl?'<a href="'+d.cupomFiscalUrl+'" target="_blank" class="btn btn-outline btn-sm" style="color:#FFC600;border-color:#FFC600">🧾 Cupom</a>':'')
+          +(d.fotoEntregaUrl?'<a href="'+d.fotoEntregaUrl+'" target="_blank" class="btn btn-outline btn-sm" style="color:#60a5fa;border-color:#60a5fa">📷 Foto entrega</a>':'')
           +'<button class="btn btn-outline btn-sm" onclick="imprimirPedido(\''+doc.id+'\',this)" style="margin-left:auto">🖨️ Imprimir</button>'
           +'</div>'
           +'</div>';

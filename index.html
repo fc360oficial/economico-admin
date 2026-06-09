@@ -78,11 +78,12 @@
 
     /* ── BADGES ── */
     .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .badge-green { background: rgba(34,197,94,.15); color: var(--green); }
-    .badge-red   { background: rgba(239,68,68,.15);  color: var(--red); }
-    .badge-blue  { background: rgba(59,130,246,.15); color: var(--blue); }
-    .badge-y     { background: rgba(255,198,0,.15);  color: var(--y); }
-    .badge-gray  { background: rgba(255,255,255,.08); color: var(--text2); }
+    .badge-green  { background: rgba(34,197,94,.15); color: var(--green); }
+    .badge-red    { background: rgba(239,68,68,.15);  color: var(--red); }
+    .badge-blue   { background: rgba(59,130,246,.15); color: var(--blue); }
+    .badge-y      { background: rgba(255,198,0,.15);  color: var(--y); }
+    .badge-gray   { background: rgba(255,255,255,.08); color: var(--text2); }
+    .badge-orange { background: rgba(249,115,22,.15); color: #f97316; }
 
     /* ── CARDS ── */
     .card { background: var(--card); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 10px; }
@@ -1410,18 +1411,20 @@ function deleteCategoria(docId) {
 
 // ── PEDIDOS ───────────────────────────────────────────────────────────────────
 var STATUS_LABELS = {
-  recebido:   {label:'Recebido',   badge:'badge-blue'},
-  preparando: {label:'Preparando', badge:'badge-y'},
-  saiu:       {label:'Saiu p/ entrega', badge:'badge-green'},
-  entregue:   {label:'Entregue',   badge:'badge-gray'},
-  cancelado:  {label:'Cancelado',  badge:'badge-red'},
+  recebido:     {label:'Recebido',       badge:'badge-blue'},
+  preparando:   {label:'Preparando',     badge:'badge-y'},
+  saiu:         {label:'Saiu p/ entrega',badge:'badge-green'},
+  entregue:     {label:'Entregue',       badge:'badge-gray'},
+  cancelado:    {label:'Cancelado',      badge:'badge-red'},
+  nao_atendido: {label:'Não atendido',   badge:'badge-orange'},
 };
 var STATUS_NEXT = {
-  recebido:   [{s:'preparando', label:'▶ Iniciar Separação',   cls:'btn-green'},  {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
-  preparando: [{s:'saiu',       label:'✅ Finalizar Separação', cls:'btn-orange', notificar:true}, {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
-  saiu:       [{s:'entregue',   label:'🏁 Marcar Entregue',    cls:'btn-blue'}],
-  entregue:   [],
-  cancelado:  [],
+  recebido:     [{s:'preparando', label:'▶ Iniciar Separação',   cls:'btn-green'},  {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
+  preparando:   [{s:'saiu',       label:'✅ Finalizar Separação', cls:'btn-orange', notificar:true}, {s:'cancelado',label:'✖ Cancelar',cls:'btn-red btn-sm',cancelar:true}],
+  saiu:         [{s:'entregue',   label:'🏁 Marcar Entregue',    cls:'btn-blue'}],
+  entregue:     [],
+  cancelado:    [],
+  nao_atendido: [{s:'saiu', label:'🔄 Re-tentar entrega', cls:'btn-orange'}, {s:'cancelado', label:'✖ Cancelar', cls:'btn-red btn-sm', cancelar:true}],
 };
 
 var _pedidosKnown = null;
@@ -1489,6 +1492,9 @@ function _fetchPedidos() {
             +'<strong style="color:var(--red)">Motivo do cancelamento:</strong> <span style="color:#fca5a5">'+d.motivoCancelamento+'</span>'
             +(d.canceladoEm?'<span style="color:#666;margin-left:8px">'+d.canceladoEm+'</span>':'')
             +'</div>':'')
+          +(d.status==='nao_atendido' ? '<div style="margin-top:8px;padding:8px 12px;background:#2a1505;border-radius:8px;border-left:3px solid #f97316;font-size:12px">'
+            +'<strong style="color:#f97316">⚠️ Cliente não atendeu</strong> — pedido retornou para a loja'
+            +'</div>' : '')
           +(d.ajustado && d.ajustes && d.ajustes.length ? '<div id="log-'+doc.id+'" style="display:none;margin-top:10px;background:#1a1a1a;border-radius:8px;padding:12px;font-size:12px">'
             +'<div style="font-weight:800;color:var(--y);margin-bottom:8px">📋 Histórico de ajustes</div>'
             +d.ajustes.map(function(a){

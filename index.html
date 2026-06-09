@@ -452,9 +452,17 @@
         <div class="config-grid">
           <div class="field"><label>Nome da loja</label><input id="cfg-nome" placeholder="Econômico Delivery"></div>
           <div class="field"><label>WhatsApp (só números)</label><input id="cfg-whatsapp" placeholder="5582999999999"></div>
-          <div class="field"><label>Chave PIX</label><input id="cfg-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
           <div class="field"><label>Senha Expedição (app da loja)</label><input id="cfg-exppass" placeholder="expedicao2024"></div>
-          <div class="field"><label>CEP da loja (para calcular distância)</label><input id="cfg-ceploja" placeholder="00000-000" maxlength="9"></div>
+          <div class="field"><label>Senha Entregador (app do entregador)</label><input id="cfg-entpass" placeholder="entregador2024"></div>
+        </div>
+      </div>
+      <div class="config-section">
+        <div class="config-section-title">Endereço da loja (usado como origem nas rotas de entrega)</div>
+        <div class="config-grid">
+          <div class="field" style="grid-column:1/-1"><label>Rua / Logradouro</label><input id="cfg-rua" placeholder="Rua Antonio Luiz Soares"></div>
+          <div class="field"><label>Número</label><input id="cfg-numend" placeholder="217"></div>
+          <div class="field"><label>Bairro</label><input id="cfg-bairro" placeholder="Centro"></div>
+          <div class="field"><label>CEP</label><input id="cfg-ceploja" placeholder="57000-000" maxlength="9"></div>
           <div class="field"><label>Raio máximo de entrega (km)</label><input id="cfg-maxdist" type="number" placeholder="10" min="1" max="100"></div>
         </div>
       </div>
@@ -1056,12 +1064,15 @@ function loadConfig() {
   db.collection('config').doc('loja').get().then(function(doc) {
     if (!doc.exists) return;
     var d = doc.data(); _cfg = d;
-    document.getElementById('cfg-nome').value        = d.nomeStore   || '';
-    document.getElementById('cfg-whatsapp').value    = d.whatsapp    || '';
-    document.getElementById('cfg-pix').value         = d.pixKey      || '';
-    document.getElementById('cfg-exppass').value     = d.expedicaoPass|| '';
-    document.getElementById('cfg-ceploja').value     = d.cepLoja      || '';
-    document.getElementById('cfg-maxdist').value     = d.maxDistKm    || '';
+    document.getElementById('cfg-nome').value        = d.nomeStore    || '';
+    document.getElementById('cfg-whatsapp').value    = d.whatsapp     || '';
+    document.getElementById('cfg-exppass').value     = d.expedicaoPass || '';
+    document.getElementById('cfg-entpass').value     = d.entregadorPass|| '';
+    document.getElementById('cfg-rua').value         = d.endRua        || '';
+    document.getElementById('cfg-numend').value      = d.endNumero     || '';
+    document.getElementById('cfg-bairro').value      = d.endBairro     || '';
+    document.getElementById('cfg-ceploja').value     = d.cepLoja       || '';
+    document.getElementById('cfg-maxdist').value     = d.maxDistKm     || '';
     document.getElementById('cfg-frete').value       = d.taxaEntrega != null ? d.taxaEntrega : '';
     document.getElementById('cfg-minimo').value      = d.pedidoMinimo!= null ? d.pedidoMinimo: '';
     document.getElementById('cfg-gratis').value      = d.freteGratis != null ? d.freteGratis : '';
@@ -1073,12 +1084,23 @@ function loadConfig() {
   });
 }
 function saveConfig() {
+  var rua    = document.getElementById('cfg-rua').value.trim();
+  var numEnd = document.getElementById('cfg-numend').value.trim();
+  var bairro = document.getElementById('cfg-bairro').value.trim();
+  var cep    = document.getElementById('cfg-ceploja').value.replace(/\D/g,'');
+  var endPartes = [rua, numEnd, bairro, cep].filter(Boolean);
+  var enderecoLoja = endPartes.join(', ');
+
   var data = {
-    nomeStore:   document.getElementById('cfg-nome').value.trim(),
-    whatsapp:    document.getElementById('cfg-whatsapp').value.trim(),
-    pixKey:        document.getElementById('cfg-pix').value.trim(),
+    nomeStore:     document.getElementById('cfg-nome').value.trim(),
+    whatsapp:      document.getElementById('cfg-whatsapp').value.trim(),
     expedicaoPass: document.getElementById('cfg-exppass').value.trim() || 'expedicao2024',
-    cepLoja:       document.getElementById('cfg-ceploja').value.replace(/\D/g,''),
+    entregadorPass:document.getElementById('cfg-entpass').value.trim() || 'entregador2024',
+    endRua:        rua,
+    endNumero:     numEnd,
+    endBairro:     bairro,
+    enderecoLoja:  enderecoLoja,
+    cepLoja:       cep,
     maxDistKm:     parseFloat(document.getElementById('cfg-maxdist').value) || 10,
     taxaEntrega: parseFloat(document.getElementById('cfg-frete').value)  || 0,
     pedidoMinimo:parseFloat(document.getElementById('cfg-minimo').value) || 0,

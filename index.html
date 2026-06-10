@@ -18,7 +18,7 @@
 
     /* ── LOGIN ── */
     #login-screen {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+      min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 24px;
     }
     .login-box { background: var(--card); border-radius: 20px; padding: 40px 32px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 4px 28px rgba(0,0,0,.10); }
     .login-logo { font-size: 32px; font-weight: 900; color: #111; margin-bottom: 4px; }
@@ -38,7 +38,7 @@
     .login-err { font-size: 12px; color: var(--red); margin-top: 8px; min-height: 18px; }
 
     /* ── ADMIN LAYOUT ── */
-    #admin-screen { display: none; flex-direction: column; min-height: 100vh; }
+    #admin-screen { display: flex; flex-direction: column; min-height: 100vh; }
 
     .admin-header {
       background: var(--card); border-top: 5px solid var(--y); border-bottom: 1px solid var(--border);
@@ -129,7 +129,7 @@
     .pedido-num { font-size: 15px; font-weight: 800; }
     .pedido-cliente { font-size: 13px; color: var(--text2); flex: 1; }
     .pedido-total-txt { font-size: 15px; font-weight: 800; color: #1a1a1a; }
-    .pedido-detail { font-size: 12px; color: var(--text2); margin-bottom: 10px; line-height: 1.6; }
+    .pedido-detail { font-size: 12px; color: #333; margin-bottom: 10px; line-height: 1.6; }
     .pedido-status-btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
     /* ── MODAL ── */
@@ -857,7 +857,7 @@ function logout() {
   document.getElementById('admin-screen').style.display = 'none';
   document.getElementById('login-pwd').value = '';
 }
-if (localStorage.getItem('ec_admin') === '1') { entrarAdmin(); }
+entrarAdmin();
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
 function goTab(tab) {

@@ -10,8 +10,8 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --y: #FFC600; --dark: #0d0d0d; --card: #1a1a1a;
-      --border: #2a2a2a; --text: #f0f0f0; --text2: #999;
+      --y: #FFC600; --dark: #f5f5f5; --card: #ffffff;
+      --border: #e8e8e8; --text: #1a1a1a; --text2: #888;
       --green: #22c55e; --red: #ef4444; --blue: #3b82f6;
     }
     body { font-family: 'Inter', sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; }
@@ -24,7 +24,7 @@
     .login-logo { font-size: 32px; font-weight: 900; color: var(--y); margin-bottom: 4px; }
     .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 32px; }
     .login-input {
-      width: 100%; background: #111; border: 1px solid var(--border); border-radius: 10px;
+      width: 100%; background: #f9f9f9; border: 1.5px solid var(--border); border-radius: 10px;
       padding: 13px 16px; color: var(--text); font-size: 15px; font-family: inherit;
       outline: none; margin-bottom: 12px; transition: border-color .2s;
     }
@@ -41,11 +41,11 @@
     #admin-screen { display: none; flex-direction: column; min-height: 100vh; }
 
     .admin-header {
-      background: var(--card); border-bottom: 1px solid var(--border);
+      background: var(--card); border-top: 5px solid var(--y); border-bottom: 1px solid var(--border);
       padding: 14px 24px; display: flex; align-items: center; gap: 16px;
       position: sticky; top: 0; z-index: 100;
     }
-    .admin-brand { font-size: 16px; font-weight: 900; color: var(--y); }
+    .admin-brand { font-size: 16px; font-weight: 900; color: #111; }
     .admin-store { font-size: 13px; color: var(--text2); flex: 1; }
     .admin-logout { background: none; border: 1px solid var(--border); color: var(--text2);
       padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
@@ -82,7 +82,7 @@
     .badge-red    { background: rgba(239,68,68,.15);  color: var(--red); }
     .badge-blue   { background: rgba(59,130,246,.15); color: var(--blue); }
     .badge-y      { background: rgba(255,198,0,.15);  color: var(--y); }
-    .badge-gray   { background: rgba(255,255,255,.08); color: var(--text2); }
+    .badge-gray   { background: rgba(0,0,0,.07); color: var(--text2); }
     .badge-orange { background: rgba(249,115,22,.15); color: #f97316; }
 
     /* ── CARDS ── */
@@ -94,11 +94,11 @@
       border-bottom: 1px solid var(--border); flex-wrap: wrap;
     }
     .prod-row:last-child { border-bottom: none; }
-    .prod-thumb { width: 52px; height: 52px; border-radius: 10px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; font-size: 26px; border: 1px solid var(--border); order: 1; }
+    .prod-thumb { width: 52px; height: 52px; border-radius: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; font-size: 26px; border: 1px solid var(--border); order: 1; }
     .prod-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
-    .btn-foto { font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #444; background: #222; color: #aaa; cursor: pointer; white-space: nowrap; }
+    .btn-foto { font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #ddd; background: #f5f5f5; color: #666; cursor: pointer; white-space: nowrap; }
     .btn-foto:hover { border-color: var(--y); color: var(--y); }
-    .foto-preview { width: 100%; height: 140px; border-radius: 10px; background: #111; border: 1px solid var(--border); object-fit: contain; display: none; margin-top: 8px; }
+    .foto-preview { width: 100%; height: 140px; border-radius: 10px; background: #f0f0f0; border: 1px solid var(--border); object-fit: contain; display: none; margin-top: 8px; }
     .prod-info { flex: 1; min-width: 0; order: 2; }
     .prod-name-txt { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .prod-meta { font-size: 11px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -120,7 +120,7 @@
     }
     .toggle-btn.on { background: var(--green); }
     .toggle-btn.on::after { left: 21px; }
-    .toggle-btn.off { background: #444; }
+    .toggle-btn.off { background: #d1d5db; }
 
     /* ── PEDIDO ROW ── */
     .pedido-row { padding: 16px; border-bottom: 1px solid var(--border); }
@@ -143,11 +143,11 @@
     .field { margin-bottom: 14px; }
     .field label { font-size: 11px; font-weight: 700; color: var(--text2); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
     .field input, .field select {
-      width: 100%; background: #111; border: 1px solid var(--border); border-radius: 8px;
+      width: 100%; background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px;
       padding: 11px 14px; color: var(--text); font-size: 14px; font-family: inherit; outline: none;
     }
     .field input:focus, .field select:focus { border-color: var(--y); }
-    .field select option { background: #111; }
+    .field select option { background: #fff; }
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
     .modal-actions .btn { flex: 1; padding: 13px; }
 
@@ -177,7 +177,7 @@
     .upload-area:hover { border-color: var(--y); }
     .upload-area-icon { font-size: 36px; margin-bottom: 8px; }
     .upload-area-txt { font-size: 13px; color: var(--text2); }
-    .upload-area-hint { font-size: 11px; color: #555; margin-top: 4px; }
+    .upload-area-hint { font-size: 11px; color: #aaa; margin-top: 4px; }
     #banner-uploading { display:none; font-size:13px; color:var(--y); margin-bottom:12px; }
 
     /* ── TOAST ── */
@@ -197,7 +197,7 @@
     /* ── REPORTS ── */
     .report-table { width:100%; border-collapse:collapse; font-size:13px; }
     .report-table th { text-align:left; padding:10px 12px; font-size:11px; color:var(--text2); font-weight:700; border-bottom:1px solid var(--border); }
-    .report-table td { padding:10px 12px; border-bottom:1px solid #1e1e1e; }
+    .report-table td { padding:10px 12px; border-bottom:1px solid var(--border); }
     .report-table tr:last-child td { border-bottom:none; }
     .report-table td:nth-child(n+2) { text-align:right; }
     .report-table th:nth-child(n+2) { text-align:right; }
@@ -207,7 +207,7 @@
       background:transparent; color:var(--text2); font-size:12px; font-weight:700;
       font-family:inherit; cursor:pointer; transition:all .18s;
     }
-    .rep-period-btn.active { background:var(--y); color:var(--dark); border-color:var(--y); }
+    .rep-period-btn.active { background:var(--y); color:#111; border-color:var(--y); }
     .rep-period-btn:hover:not(.active) { border-color:var(--y); color:var(--y); }
     .rep-date-input {
       background:var(--card); border:1px solid var(--border); border-radius:8px;

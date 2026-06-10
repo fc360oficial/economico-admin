@@ -292,6 +292,7 @@
     <div class="admin-tab" onclick="goTab('cupons')">🏷 Cupons</div>
     <div class="admin-tab" onclick="goTab('categorias')">🗂 Categorias</div>
     <div class="admin-tab" onclick="goTab('config')">⚙️ Config</div>
+    <div class="admin-tab" onclick="goTab('usuarios')">👤 Usuários</div>
   </div>
 
   <div class="admin-body">
@@ -444,6 +445,15 @@
       <div class="card" id="categorias-list"><div class="loading">Carregando...</div></div>
     </div>
 
+    <!-- TAB USUÁRIOS -->
+    <div class="tab-panel" id="tab-usuarios">
+      <div class="toolbar">
+        <div class="toolbar-title">Usuários da Retaguarda</div>
+        <button class="btn btn-y" onclick="abrirModalUsuario()">+ Novo usuário</button>
+      </div>
+      <div class="card" id="usuarios-list"><div class="loading">Carregando...</div></div>
+    </div>
+
     <!-- TAB CONFIG -->
     <div class="tab-panel" id="tab-config">
       <div class="toolbar"><div class="toolbar-title">Configurações da Loja</div></div>
@@ -500,6 +510,42 @@
       <div id="cfg-msg" style="text-align:center;font-size:13px;font-weight:700;margin-top:12px;min-height:20px"></div>
     </div>
 
+  </div>
+</div>
+
+<!-- ── MODAL USUÁRIO ── -->
+<div class="modal-overlay" id="dlg-usuario" style="display:none" onclick="if(event.target===this)fecharModalUsuario()">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title" id="dlg-usuario-titulo">Novo Usuário</div>
+    <div class="field" style="margin-bottom:12px"><label>Nome completo</label><input id="usr-nome" class="field-input" placeholder="Ex: Tiago Freire"></div>
+    <div class="field" style="margin-bottom:12px"><label>Usuário (login)</label><input id="usr-usuario" class="field-input" placeholder="Ex: tiago" style="text-transform:lowercase" oninput="this.value=this.value.toLowerCase().replace(/\s/g,'')"></div>
+    <div class="field" style="margin-bottom:12px"><label>Senha</label><input id="usr-senha" type="password" class="field-input" placeholder="Mínimo 4 caracteres"></div>
+    <div class="field" style="margin-bottom:16px">
+      <label>Perfis de acesso</label>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal">
+          <input type="checkbox" id="usr-p-admin" style="width:16px;height:16px">
+          <span>🏪 <strong>Admin</strong> — Painel administrativo</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal">
+          <input type="checkbox" id="usr-p-expedicao" style="width:16px;height:16px">
+          <span>📦 <strong>Expedição</strong> — Separação e confirmação</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:normal">
+          <input type="checkbox" id="usr-p-entregador" style="width:16px;height:16px">
+          <span>🛵 <strong>Entregador</strong> — Rotas e entregas</span>
+        </label>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <input type="checkbox" id="usr-ativo" checked style="width:16px;height:16px">
+      <label for="usr-ativo" style="font-size:13px;font-weight:600;cursor:pointer">Usuário ativo</label>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="fecharModalUsuario()">Cancelar</button>
+      <button class="btn btn-y" style="flex:2" onclick="salvarUsuario()">💾 Salvar</button>
+    </div>
+    <div id="usr-msg" style="text-align:center;font-size:12px;font-weight:700;margin-top:10px;min-height:16px"></div>
   </div>
 </div>
 
@@ -718,7 +764,7 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 // ── TABS (definido antes do login para estar disponível na inicialização) ──────
-var _TABS = ['pedidos','produtos','clientes','banners','relatorios','cupons','categorias','config'];
+var _TABS = ['pedidos','produtos','clientes','banners','relatorios','cupons','categorias','config','usuarios'];
 
 // ── LOGIN ─────────────────────────────────────────────────────────────────────
 function entrarAdmin() {
@@ -826,6 +872,7 @@ function goTab(tab) {
   if (tab==='cupons') loadCupons();
   if (tab==='categorias') loadCategorias();
   if (tab==='clientes') loadClientes();
+  if (tab==='usuarios') loadUsuarios();
 }
 
 // ── BANNERS ───────────────────────────────────────────────────────────────────
@@ -2235,6 +2282,102 @@ function saveProduto() {
 }
 
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js'); }
+
+// ── USUÁRIOS ──────────────────────────────────────────────────────────────────
+var _editUsuarioId = null;
+var _PERFIL_LABEL  = { admin:'Admin', expedicao:'Expedição', entregador:'Entregador' };
+
+function loadUsuarios() {
+  var list = document.getElementById('usuarios-list');
+  list.innerHTML = '<div class="loading">Carregando usuários...</div>';
+  db.collection('usuarios').orderBy('nome').get()
+    .then(function(snap) {
+      if (snap.empty) {
+        list.innerHTML = '<div style="padding:32px;text-align:center;color:#888">Nenhum usuário cadastrado.<br>Crie o primeiro usando o botão acima.</div>';
+        return;
+      }
+      list.innerHTML = snap.docs.map(function(doc) {
+        var d = doc.data();
+        var perfisHtml = (d.perfis||[]).map(function(p){
+          return '<span class="badge badge-y" style="margin-right:4px">'+(_PERFIL_LABEL[p]||p)+'</span>';
+        }).join('');
+        return '<div class="pedido-row" style="align-items:center">'
+          + '<div style="flex:1;min-width:0">'
+          +   '<div style="font-weight:800;font-size:14px;color:#fff">'+d.nome+'</div>'
+          +   '<div style="font-size:12px;color:#888;margin:3px 0">@'+d.usuario+'</div>'
+          +   '<div>'+perfisHtml+'</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+          +   (d.ativo ? '<span class="badge badge-green">Ativo</span>' : '<span class="badge badge-gray">Inativo</span>')
+          +   '<button class="btn btn-outline btn-sm" onclick="editarUsuario(\''+doc.id+'\')">✏️ Editar</button>'
+          +   '<button class="btn btn-outline btn-sm" style="color:var(--red);border-color:var(--red)" onclick="excluirUsuario(\''+doc.id+'\',\''+encodeURIComponent(d.nome)+'\')">🗑</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(e){ list.innerHTML = '<div class="loading">Erro: '+e.message+'</div>'; });
+}
+
+function abrirModalUsuario(id, dados) {
+  _editUsuarioId = id || null;
+  document.getElementById('dlg-usuario-titulo').textContent = id ? 'Editar Usuário' : 'Novo Usuário';
+  document.getElementById('usr-nome').value    = dados ? dados.nome    : '';
+  document.getElementById('usr-usuario').value = dados ? dados.usuario : '';
+  document.getElementById('usr-senha').value   = '';
+  document.getElementById('usr-senha').placeholder = id ? 'Deixe vazio para manter a atual' : 'Mínimo 4 caracteres';
+  document.getElementById('usr-p-admin').checked      = dados ? (dados.perfis||[]).indexOf('admin')>=0      : false;
+  document.getElementById('usr-p-expedicao').checked  = dados ? (dados.perfis||[]).indexOf('expedicao')>=0  : false;
+  document.getElementById('usr-p-entregador').checked = dados ? (dados.perfis||[]).indexOf('entregador')>=0 : false;
+  document.getElementById('usr-ativo').checked = dados ? !!dados.ativo : true;
+  document.getElementById('usr-msg').textContent = '';
+  document.getElementById('dlg-usuario').style.display = 'flex';
+}
+
+function fecharModalUsuario() {
+  document.getElementById('dlg-usuario').style.display = 'none';
+  _editUsuarioId = null;
+}
+
+function editarUsuario(docId) {
+  db.collection('usuarios').doc(docId).get().then(function(doc) {
+    if (doc.exists) abrirModalUsuario(docId, doc.data());
+  });
+}
+
+function salvarUsuario() {
+  var nome    = document.getElementById('usr-nome').value.trim();
+  var usuario = document.getElementById('usr-usuario').value.trim().toLowerCase();
+  var senha   = document.getElementById('usr-senha').value;
+  var ativo   = document.getElementById('usr-ativo').checked;
+  var msg     = document.getElementById('usr-msg');
+  var perfis  = [];
+  if (document.getElementById('usr-p-admin').checked)      perfis.push('admin');
+  if (document.getElementById('usr-p-expedicao').checked)  perfis.push('expedicao');
+  if (document.getElementById('usr-p-entregador').checked) perfis.push('entregador');
+
+  if (!nome)    { msg.style.color='var(--red)'; msg.textContent='Informe o nome.'; return; }
+  if (!usuario) { msg.style.color='var(--red)'; msg.textContent='Informe o usuário.'; return; }
+  if (!_editUsuarioId && senha.length < 4) { msg.style.color='var(--red)'; msg.textContent='Senha deve ter ao menos 4 caracteres.'; return; }
+  if (perfis.length === 0) { msg.style.color='var(--red)'; msg.textContent='Selecione ao menos um perfil.'; return; }
+
+  var data = { nome:nome, usuario:usuario, perfis:perfis, ativo:ativo };
+  if (senha) data.senha = senha;
+
+  var promise = _editUsuarioId
+    ? db.collection('usuarios').doc(_editUsuarioId).update(data)
+    : (data.senha = senha, db.collection('usuarios').add(Object.assign(data, { criadoEm: firebase.firestore.FieldValue.serverTimestamp() })));
+
+  promise.then(function() {
+    msg.style.color = 'var(--green)';
+    msg.textContent = '✅ Salvo com sucesso!';
+    setTimeout(function() { fecharModalUsuario(); loadUsuarios(); }, 800);
+  }).catch(function(e) { msg.style.color='var(--red)'; msg.textContent='Erro: '+e.message; });
+}
+
+function excluirUsuario(docId, nomeEnc) {
+  if (!confirm('Remover usuário "'+decodeURIComponent(nomeEnc)+'"?')) return;
+  db.collection('usuarios').doc(docId).delete().then(loadUsuarios);
+}
 </script>
 </body>
 </html>

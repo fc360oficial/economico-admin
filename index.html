@@ -41,21 +41,21 @@
     #admin-screen { display: flex; flex-direction: column; min-height: 100vh; }
 
     .admin-header {
-      background: var(--card); border-top: 5px solid var(--y); border-bottom: 1px solid var(--border);
+      background: var(--y); border-bottom: 1px solid rgba(0,0,0,.1);
       padding: 14px 24px; display: flex; align-items: center; gap: 16px;
-      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.07);
+      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.10);
     }
-    .admin-brand { font-size: 16px; font-weight: 900; color: #111; }
-    .admin-store { font-size: 13px; color: var(--text2); flex: 1; }
-    .admin-logout { background: none; border: 1px solid var(--border); color: var(--text2);
+    .admin-brand { font-size: 16px; font-weight: 900; color: #000; }
+    .admin-store { font-size: 13px; color: rgba(0,0,0,.55); flex: 1; }
+    .admin-logout { background: none; border: 1px solid rgba(0,0,0,.25); color: #111;
       padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; }
 
-    .admin-tabs { display: flex; background: var(--card); border-bottom: 1px solid var(--border); padding: 0 24px; }
+    .admin-tabs { display: flex; background: var(--y); border-bottom: 2px solid rgba(0,0,0,.12); padding: 0 24px; overflow-x: auto; }
     .admin-tab {
-      padding: 14px 20px; font-size: 13px; font-weight: 700; cursor: pointer;
-      color: var(--text2); border-bottom: 2px solid transparent; transition: all .2s;
+      padding: 12px 18px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+      color: rgba(0,0,0,.55); border-bottom: 2px solid transparent; transition: all .2s;
     }
-    .admin-tab.active { color: #111; border-bottom-color: var(--y); }
+    .admin-tab.active { color: #000; border-bottom-color: #000; }
 
     .admin-body { flex: 1; padding: 24px; max-width: 900px; margin: 0 auto; width: 100%; }
 

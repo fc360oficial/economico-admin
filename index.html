@@ -853,9 +853,7 @@ function doLogin() {
 }
 function logout() {
   localStorage.removeItem('ec_admin');
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('admin-screen').style.display = 'none';
-  document.getElementById('login-pwd').value = '';
+  location.href = 'https://fc360oficial.github.io/delivery_retaguarda/';
 }
 entrarAdmin();
 
